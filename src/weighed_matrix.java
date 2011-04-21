@@ -10,7 +10,17 @@ import java.util.regex.Pattern;
 
 public class weighed_matrix {
 	int pseudocount = 2;
+	String[] motif;
+	Hashtable<String, double[]> basefreq;
+	Hashtable<String, double[]> Pm;
 
+	weighed_matrix() {
+		basefreq 	= new Hashtable<String, double[]>();
+		Pm 			= new Hashtable<String, double[]>();		
+		initialize(basefreq);
+		initialize(Pm);
+	}
+	
 	void fileIN(File f) {           //reads file in
 		//StringBuffer contents = new StringBuffer();
 		BufferedReader reader = null;
@@ -39,72 +49,74 @@ public class weighed_matrix {
 		double[] c = new double[wordlength];
 		double[] g = new double[wordlength];
 		double[] t = new double[wordlength];
-		double[] tot = new double[wordlength];
 		hash.put("A", a);
 		hash.put("C", c);
 		hash.put("G", g);
 		hash.put("T", t);
-		hash.put("total", tot);
 		return hash;
 	}
 
-	Hashtable<String, double[]> freq() {
-		Hashtable<String,double[]>temp_table = new Hashtable<String,double[]>();
-		initialize(temp_table); //keys = [A, C, G, T] array = pos[1-6]
-		for(int i=0; i< this.sample.length; i++) {
-			for(int j=0; j<this.sample[i].length(); j++) {
-				if(Pattern.matches("(A|a)", this.sample[i].substring(j,j+1))) {
-					temp_table.get("A")[j] += 1;
-				}else if (Pattern.matches("(C|c)",this.sample[i].substring(j,j+1))) {
-					temp_table.get("C")[j] += 1;
-				}else if (Pattern.matches("(G|g)", this.sample[i].substring(j,j+1))) {
-					temp_table.get("G")[j] += 1;
-				}else if (Pattern.matches("(T|t)", this.sample[i].substring(j,j+1))) {
-					temp_table.get("T")[j] += 1;
+	void freq() {
+		for(int i=0; i< this.motif.length; i++) {
+			for(int j=0; j<this.motif[i].length(); j++) {
+				if(Pattern.matches("(A|a)", this.motif[i].substring(j,j+1))) {
+					this.basefreq.get("A")[j] += 1;
+				}else if (Pattern.matches("(C|c)",this.motif[i].substring(j,j+1))) {
+					this.basefreq.get("C")[j] += 1;
+				}else if (Pattern.matches("(G|g)", this.motif[i].substring(j,j+1))) {
+					this.basefreq.get("G")[j] += 1;
+				}else if (Pattern.matches("(T|t)", this.motif[i].substring(j,j+1))) {
+					this.basefreq.get("T")[j] += 1;
 				}
-				temp_table.get("A")[j] += this.pseudocount/this.sample.length;
-				temp_table.get("C")[j] += this.pseudocount/this.sample.length;
-				temp_table.get("G")[j] += this.pseudocount/this.sample.length;
-				temp_table.get("T")[j] += this.pseudocount/this.sample.length;
+				this.basefreq.get("A")[j] += this.pseudocount/this.motif.length;
+				this.basefreq.get("C")[j] += this.pseudocount/this.motif.length;
+				this.basefreq.get("G")[j] += this.pseudocount/this.motif.length;
+				this.basefreq.get("T")[j] += this.pseudocount/this.motif.length;
 			}
 		}
-		return temp_table;
 	}
 
-	Hashtable Pm (Hashtable<String, double[]> freq) {
-		int a=0;
-		int c=0;
-		int g=0;
-		int t=0;
-		Hashtable<String, double[]> Pm = new Hashtable();
-		initialize(Pm);
-		Pm.remove("total");
-		for(int i = 0; i<this.wordlength; i++) {
-			a+=freq.get("A")[i];
-			c+=freq.get("C")[i];
-			g+=freq.get("G")[i];
-			t+=freq.get("T")[i];
-			freq.get("total")[i] += freq.get("A")[i] + freq.get("C")[i] + freq.get("G")[i] + freq.get("T")[i];
+	void buildPm() {
+		String[] base = {"A","C","G","T"};
+		for (int i =0; i<4; i++) {							//loop for each base
+			int len = this.basefreq.get(base[i]).length;	//loops the for length L 
+			for (int j=0; j<len;j++) {
+				this.Pm.get(base[i])[j] = Math.log(Pm(base[i],j)/q(base[i]));	//Profile matrix
+			}
 		}
-		for(int i=0; i<this.wordlength; i++) {
-			Pm.get("A")[i] = Math.log((freq.get("A")[i]/freq.get("total")[i])/((a-freq.get("A")[i])/(a+c+g+t)));
-			Pm.get("C")[i] = Math.log((freq.get("C")[i]/freq.get("total")[i])/((c-freq.get("C")[i])/(a+c+g+t)));
-			Pm.get("G")[i] = Math.log((freq.get("G")[i]/freq.get("total")[i])/((g-freq.get("G")[i])/(a+c+g+t)));
-			Pm.get("T")[i] = Math.log((freq.get("T")[i]/freq.get("total")[i])/((t-freq.get("T")[i])/(a+c+g+t)));	
+	}
+	
+	double Pm (String base, int i) {
+		double p = this.basefreq.get(base)[i]/this.basefreq.get(base).length;
+		return p;
+	}
+	
+	double q (String base) {
+		int len = this.basefreq.get(base).length;
+		int a=0, c=0, g=0, t=0, nbase=0;
+		for (int i=0; i<len; i++){
+			a += this.basefreq.get("A")[i];
+			c += this.basefreq.get("C")[i];
+			g += this.basefreq.get("G")[i];
+			t += this.basefreq.get("T")[i];
+			nbase += this.basefreq.get(base)[i];
 		}
-		return Pm;
+		return (nbase/(a+c+g+t));
 	}
 
-	double I(int i, Hashtable<String, double[]> Pm, Hashtable<String, double[]> F){
+	double I(int i){
 		double I=0;
 		Enumeration<String> b = Pm.keys();
 		while( b.hasMoreElements()) {
 			String base = b.nextElement(); 
-			I = I + Pm.get(base)[i] * F.get(base)[i];
+			I = I + Pm.get(base)[i] * basefreq.get(base)[i];
 		}
 		return I;
 	}
 	
+	double score(P, F) {
+		
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
