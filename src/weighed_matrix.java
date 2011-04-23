@@ -10,45 +10,24 @@ import java.util.regex.Pattern;
 
 public class weighed_matrix {
 	int pseudocount = 2;
+	int L;
 	String[] motif;
 	Hashtable<String, double[]> basefreq;
-	Hashtable<String, double[]> Pm;
-
-	weighed_matrix() {
-		basefreq 	= new Hashtable<String, double[]>();
-		Pm 			= new Hashtable<String, double[]>();		
-		initialize(basefreq);
-		initialize(Pm);
-	}
+	Hashtable<String, double[]> Prf;
 	
-	void fileIN(File f) {           //reads file in
-		//StringBuffer contents = new StringBuffer();
-		BufferedReader reader = null;
-		String[] input = new String[350];
-
-		try {
-			reader = new BufferedReader(new FileReader(f));
-			String text = null;
-			int j=0;
-			while (reader.readLine() != null) {
-				text = reader.readLine();
-				if(! Pattern.matches("^>.*", text)) {
-					input[j] = text;
-					j++;
-				}
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		this.sequences=input;
+	weighed_matrix(int motiflength) {
+		basefreq 	= new Hashtable<String, double[]>();
+		Prf 		= new Hashtable<String, double[]>();		
+		L			= motiflength;
+		initialize(basefreq);
+		initialize(Prf);
 	}
+
 	Hashtable<String, double[]> initialize(Hashtable<String,double[]> hash) {
-		double[] a = new double[wordlength];
-		double[] c = new double[wordlength];
-		double[] g = new double[wordlength];
-		double[] t = new double[wordlength];
+		double[] a = new double[L];
+		double[] c = new double[L];
+		double[] g = new double[L];
+		double[] t = new double[L];
 		hash.put("A", a);
 		hash.put("C", c);
 		hash.put("G", g);
@@ -76,17 +55,17 @@ public class weighed_matrix {
 		}
 	}
 
-	void buildPm() {
+	void Prf() {
 		String[] base = {"A","C","G","T"};
 		for (int i =0; i<4; i++) {							//loop for each base
 			int len = this.basefreq.get(base[i]).length;	//loops the for length L 
 			for (int j=0; j<len;j++) {
-				this.Pm.get(base[i])[j] = Math.log(Pm(base[i],j)/q(base[i]));	//Profile matrix
+				this.Prf.get(base[i])[j] = Math.log(pm(base[i],j)/q(base[i]));	//Profile matrix
 			}
 		}
 	}
 	
-	double Pm (String base, int i) {
+	double pm (String base, int i) {
 		double p = this.basefreq.get(base)[i]/this.basefreq.get(base).length;
 		return p;
 	}
@@ -106,20 +85,12 @@ public class weighed_matrix {
 
 	double I(int i){
 		double I=0;
-		Enumeration<String> b = Pm.keys();
+		Enumeration<String> b = Prf.keys();
 		while( b.hasMoreElements()) {
 			String base = b.nextElement(); 
-			I = I + Pm.get(base)[i] * basefreq.get(base)[i];
+			I = I + pm(base,i) * Prf.get(base)[i];
 		}
 		return I;
 	}
 	
-	double score(P, F) {
-		
-	}
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
 }
