@@ -35,7 +35,7 @@ public class weighed_matrix {
 		return hash;
 	}
 
-	void freq() {
+	void freq() {	//frequency table
 		for(int i=0; i< this.motif.length; i++) {
 			for(int j=0; j<this.motif[i].length(); j++) {
 				if(Pattern.matches("(A|a)", this.motif[i].substring(j,j+1))) {
@@ -55,7 +55,7 @@ public class weighed_matrix {
 		}
 	}
 
-	void Prf() {
+	void Prf() {	//ln(pm(b,i)/q(b))
 		String[] base = {"A","C","G","T"};
 		for (int i =0; i<4; i++) {							//loop for each base
 			int len = this.basefreq.get(base[i]).length;	//loops the for length L 
@@ -65,12 +65,12 @@ public class weighed_matrix {
 		}
 	}
 	
-	double pm (String base, int i) {
+	double pm (String base, int i) {	//probability of base b at position i
 		double p = this.basefreq.get(base)[i]/this.basefreq.get(base).length;
 		return p;
 	}
 	
-	double q (String base) {
+	double q (String base) {	//background frequency of base b
 		int len = this.basefreq.get(base).length;
 		int a=0, c=0, g=0, t=0, nbase=0;
 		for (int i=0; i<len; i++){
@@ -83,7 +83,7 @@ public class weighed_matrix {
 		return (nbase/(a+c+g+t));
 	}
 
-	double I(int i){
+	double I(int i){	//information stored in each column
 		double I=0;
 		Enumeration<String> b = Prf.keys();
 		while( b.hasMoreElements()) {
