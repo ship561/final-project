@@ -87,8 +87,11 @@ public class weighed_matrix {
 	}
 	
 	double Pm (String base, int i) {
-		double p = this.basefreq.get(base)[i]/this.basefreq.get(base).length;
-		return p;
+		double a 	= this.basefreq.get("A")[i];
+		double c 	= this.basefreq.get("C")[i];
+		double g 	= this.basefreq.get("G")[i];
+		double t 	= this.basefreq.get("T")[i];
+		return (this.basefreq.get(base)[i]/(a+c+g+t)); //probability of base b at position i
 	}
 	
 	double q (String base) {
