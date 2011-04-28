@@ -1,0 +1,30 @@
+NC_000964 | Bacillus subtilis subsp. subtilis str. 168          |      14 |  118591 |  119016 |    426 |
+NC_002570 | Bacillus halodurans C-125                           |      14 |  150574 |  150999 |    426 |
+NC_003909 | Bacillus cereus ATCC 10987                          |      14 |  104968 |  105393 |    426 |
+NC_003997 | Bacillus anthracis str. Ames                        |      14 |  104969 |  105394 |    426 |
+NC_004722 | Bacillus cereus ATCC 14579                          |      14 | 4982430 | 4982855 |    426 |
+NC_004722 | Bacillus cereus ATCC 14579                          |      14 | 4984409 | 4984834 |    426 |
+NC_004722 | Bacillus cereus ATCC 14579                          |      14 |  110486 |  110911 |    426 |
+NC_005945 | Bacillus anthracis str. Sterne                      |      14 |  104970 |  105395 |    426 |
+NC_005957 | Bacillus thuringiensis serovar konkukian str. 97-27 |      14 |  110699 |  111124 |    426 |
+NC_006270 | Bacillus licheniformis ATCC 14580                   |      14 |  117552 |  117977 |    426 |
+NC_006274 | Bacillus cereus E33L                                |      14 |  104961 |  105386 |    426 |
+NC_006322 | Bacillus licheniformis ATCC 14580                   |      14 |  117356 |  117781 |    426 |
+NC_006582 | Bacillus clausii KSM-K16                            |      14 |  166612 |  167037 |    426 |
+NC_007530 | Bacillus anthracis str. 'Ames Ancestor'             |      14 |  104969 |  105394 |    426 |
+NC_008600 | Bacillus thuringiensis str. Al Hakam                |      14 |  110682 |  111116 |    435 |
+NC_009674 | Bacillus cytotoxicus NVH 391-98                     |      14 |  111275 |  111700 |    426 |
+NC_009725 | Bacillus amyloliquefaciens FZB42                    |      14 |  119307 |  119732 |    426 |
+NC_009848 | Bacillus pumilus SAFR-032                           |      14 |   93321 |   93800 |    480 |
+NC_010184 | Bacillus weihenstephanensis KBAB4                   |      14 |  110531 |  110956 |    426 |
+NC_011658 | Bacillus cereus AH187                               |      14 |  110728 |  111153 |    426 |
+NC_011725 | Bacillus cereus B4264                               |      14 |  110612 |  111037 |    426 |
+NC_011772 | Bacillus cereus G9842                               |      14 |  104734 |  105159 |    426 |
+NC_011773 | Bacillus cereus AH820                               |      14 |  104982 |  105407 |    426 |
+NC_011969 | Bacillus cereus Q1                                  |      14 |  104809 |  105213 |    405 |
+NC_012472 | Bacillus cereus 03BB102                             |      14 |  110562 |  110987 |    426 |
+NC_012581 | Bacillus anthracis str. CDC 684                     |      14 |  104842 |  105267 |    426 |
+NC_012659 | Bacillus anthracis str. A0248                       |      14 |  104869 |  105294 |    426 |
+NC_013791 | Bacillus pseudofirmus OF4                           |      14 |  120646 |  121071 |    426 |
+NC_014019 | Bacillus megaterium QM B1551                        |      14 |  112544 |  112969 |    426 |
+NC_014103 | Bacillus megaterium DSM 319                         |      14 |  112492 |  112917 |    426 |
