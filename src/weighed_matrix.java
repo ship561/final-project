@@ -15,10 +15,11 @@ public class weighed_matrix {
 	Hashtable<String, double[]> basefreq;
 	Hashtable<String, double[]> Prf;
 	
-	weighed_matrix(int motiflength) {
+	weighed_matrix(String[] motifs) {
+		motif		= motifs;
 		basefreq 	= new Hashtable<String, double[]>();
 		Prf 		= new Hashtable<String, double[]>();		
-		L			= motiflength;
+		L			= motifs[0].length();
 		initialize(basefreq);
 		initialize(Prf);
 	}
