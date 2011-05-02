@@ -22,6 +22,8 @@ public class weighed_matrix {
 		L			= motifs[0].length();
 		initialize(basefreq);
 		initialize(Prf);
+		freq();
+		Prf();
 	}
 
 	Hashtable<String, double[]> initialize(Hashtable<String,double[]> hash) {
@@ -48,10 +50,10 @@ public class weighed_matrix {
 				}else if (Pattern.matches("(T|t)", this.motif[i].substring(j,j+1))) {
 					this.basefreq.get("T")[j] += 1;
 				}
-				this.basefreq.get("A")[j] += this.pseudocount/this.motif.length;
-				this.basefreq.get("C")[j] += this.pseudocount/this.motif.length;
-				this.basefreq.get("G")[j] += this.pseudocount/this.motif.length;
-				this.basefreq.get("T")[j] += this.pseudocount/this.motif.length;
+				this.basefreq.get("A")[j] += (double) this.pseudocount/this.motif.length;
+				this.basefreq.get("C")[j] += (double) this.pseudocount/this.motif.length;
+				this.basefreq.get("G")[j] += (double) this.pseudocount/this.motif.length;
+				this.basefreq.get("T")[j] += (double) this.pseudocount/this.motif.length;
 			}
 		}
 	}
@@ -81,7 +83,7 @@ public class weighed_matrix {
 			t += this.basefreq.get("T")[i];
 			nbase += this.basefreq.get(base)[i];
 		}
-		return (nbase/(a+c+g+t));
+		return ((double) nbase/(a+c+g+t));
 	}
 
 	double I(int i){	//information stored in each column

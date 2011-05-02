@@ -24,22 +24,26 @@ public class predictMotif {
 			reader = new BufferedReader(new FileReader(f));
 			String text = null;
 
-			while (reader.readLine() != null) {
-				text = reader.readLine();
+			while ((text=reader.readLine()) != null) {
+				//text = reader.readLine();
 				if(Pattern.matches("^>.*", text) && list.size() > 0) {
 					String[] m = new String[list.size()];
 					list.toArray(m);
 					motifs.add(m);
 					list = new ArrayList();
-				} else {
+				} else if (! Pattern.matches("^>.*", text)){
 					list.add(text);
 				}
 			}
+			String[] m = new String[list.size()];
+			list.toArray(m);
+			motifs.add(m);
+			reader.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		} 
 		return motifs;
 	}
 	
@@ -49,11 +53,12 @@ public class predictMotif {
 		double temp=0;
 		double maxA=0;
 		double maxPrf=0;
-		for(int j=0; j<P1.Prf.get("A").length; j++) {
+		for(int j=0; j<P1.L; j++) {
 			sumAln=0;
-			for(int si=0; si<F2.basefreq.get("A").length; si++) {
-				for (Enumeration e = P1.Prf.elements() ; e.hasMoreElements() ;) {
-					sumAln += F2.basefreq.get(e.nextElement())[si]*P1.Prf.get(e.nextElement())[j]; //sum(f2(b,s(i))*Prf1(b,i))
+			for(int si=0; si<F2.L; si++) {
+				for (Enumeration<String> e = P1.Prf.keys() ; e.hasMoreElements() ;) {
+					String ele = e.nextElement();
+					sumAln += F2.basefreq.get(ele)[si]*P1.Prf.get(ele)[j]; //sum(f2(b,s(i))*Prf1(b,i))
 				}
 			}
 			temp = P1.I(j)*sumAln;
@@ -61,8 +66,9 @@ public class predictMotif {
 				maxA = temp;
 		}
 		for(int i=0; i<P1.L; i++) {
-			for (Enumeration e = P1.Prf.elements() ; e.hasMoreElements() ;) {
-				temp = F2.Prf.get(e.nextElement())[i];	//max Prf(b,i)
+			for (Enumeration<String> e = P1.Prf.keys() ; e.hasMoreElements() ;) {
+				String b = e.nextElement();				//base b
+				temp = F2.Prf.get(b)[i];	//max Prf(b,i)
 				if (temp > maxPrf)
 					maxPrf=temp;
 			}
@@ -76,13 +82,14 @@ public class predictMotif {
 		similarity = (score(M1,M2) + score(M2,M1))/2;
 		return similarity;
 	}
+	
 	Graph simgraph(weighed_matrix[] motifs) {
 		int numMotif = motifs.length;
 		Graph G = new Graph(numMotif);
-		for(int i=0; i<numMotif-1; i++) {
-			for (int j=1; j< numMotif; j++) {
+		for(int i=0; i<numMotif; i++) {
+			for (int j=0; j< numMotif; j++) {
 				double similarity = sim(motifs[i], motifs[j]);
-				if (similarity > 1) {					//Similarity needs to be greater than a cutoff beta
+				if (similarity > .25) {					//Similarity needs to be greater than a cutoff beta
 					G.adjacency_matrix[i][j] = 1;
 					G.edgevalues[i][j] = similarity;
 				}
@@ -101,11 +108,10 @@ public class predictMotif {
 		ArrayList<String[]> listMotifs = new ArrayList<String[]>();
 		listMotifs = inputmotifs.fileIN(file, listMotifs);
 		weighed_matrix[] matrixController = new weighed_matrix[listMotifs.size()];
-		for(int i=0; i< listMotifs.size(); i++) {
-			matrixController[i]= new weighed_matrix(listMotifs.get(i));
-		}
-		simGraph = new Graph(listMotifs.size());
-		simGraph = inputmotifs.simgraph(matrixController);
+		for(int i=0; i< listMotifs.size(); i++) 
+			matrixController[i]= new weighed_matrix(listMotifs.get(i));					//motifs are put into a controller array 
+		simGraph = new Graph(listMotifs.size());										//creates a graph of the correct size
+		simGraph = inputmotifs.simgraph(matrixController);								//adds edges
 		SM = new SparseMatrix(simGraph.adjacency_matrix);
 		SM = m.run(SM, .1, .1, .1, 1);
 	}
