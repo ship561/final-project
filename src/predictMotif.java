@@ -99,21 +99,31 @@ public class predictMotif {
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		MarkovClustering m = new MarkovClustering();
+		minimcl m = new minimcl();
 		SparseMatrix SM;
-		
 		predictMotif inputmotifs = new predictMotif();
 		File file = new File("motif.txt");
 		Graph simGraph;
 		ArrayList<String[]> listMotifs = new ArrayList<String[]>();
+		
 		listMotifs = inputmotifs.fileIN(file, listMotifs);
 		weighed_matrix[] matrixController = new weighed_matrix[listMotifs.size()];
 		for(int i=0; i< listMotifs.size(); i++) 
 			matrixController[i]= new weighed_matrix(listMotifs.get(i));					//motifs are put into a controller array 
 		simGraph = new Graph(listMotifs.size());										//creates a graph of the correct size
 		simGraph = inputmotifs.simgraph(matrixController);								//adds edges
-		SM = new SparseMatrix(simGraph.adjacency_matrix);
-		SM = m.run(SM, .1, .1, .1, 1);
+/*		m.addloops(simGraph.adjacency_matrix);
+		simGraph.adjacency_matrix = m.make_stochastic(simGraph.adjacency_matrix);
+		SM = new SparseMatrix(simGraph.adjacency_matrix);*/
+		m.addloops(simGraph.edgevalues);
+		simGraph.edgevalues = m.make_stochastic(simGraph.edgevalues);
+		SM = new SparseMatrix(simGraph.edgevalues);
+		SM = m.mcl(SM, 2);
+		String[] clusters = m.getClusters(SM);
+		for(int i=0; i<clusters.length; i++) {
+			if( clusters[i] != "")
+				System.out.println(clusters[i]);
+		}
 	}
 
 }

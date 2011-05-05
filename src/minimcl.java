@@ -1,0 +1,61 @@
+import net.sf.javaml.clustering.mcl.MarkovClustering;
+import net.sf.javaml.clustering.mcl.SparseMatrix;
+
+
+public class minimcl {
+	double[][] addloops(double[][] adjacency_matrix) {
+		int n= adjacency_matrix.length;
+		for(int i=0; i<n; i++ ) {
+			double max=0;
+			for(int j=0; j<n; j++) { 
+				for(int k=0; k<n; k++) {
+					if(adjacency_matrix[i][k] > max) 
+						max = adjacency_matrix[i][k];
+				}
+				if(max == 0) 
+					max=1;
+				if(i==j) 
+					adjacency_matrix[i][j] = max;
+			}
+		}
+		return adjacency_matrix;
+	}
+	
+	double[][] make_stochastic(double[][] adjacency_matrix) {
+		SparseMatrix SM = new SparseMatrix(adjacency_matrix);
+		SM.normaliseRows();
+		adjacency_matrix = SM.getDense();
+		return adjacency_matrix;
+	}
+	
+	SparseMatrix mcl(SparseMatrix mx, double I) {
+		double chaos=1;
+		int i = 1;
+		MarkovClustering MC = new MarkovClustering();
+		while (chaos > .00001) {
+			SparseMatrix sq;
+			sq = MC.expand(mx);
+			chaos = MC.inflate(sq, I, .0001);
+			mx = sq;
+			i++;
+		}
+		return mx;
+	}
+	
+	String[] getClusters(SparseMatrix mx) {
+		mx.prune(.01);
+		mx.normaliseRows();
+		double[][] matrix = mx.getDense();
+		int size = matrix.length;
+		String[] str = new String[size];
+		for(int col=0; col<size; col++) {
+			str[col] = "";
+			for(int row=0; row<size; row++) {
+				if(matrix[row][col] == 1) {
+					str[col] += row + " ";
+				}
+			}
+		}
+		return str;
+	}
+}
