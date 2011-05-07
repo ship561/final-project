@@ -4,7 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import net.sf.javaml.clustering.mcl.MarkovClustering;
@@ -97,6 +100,41 @@ public class predictMotif {
 		}
 		return G;
 	}
+	String checkclique(List<String> clique, Graph G) {
+		
+		int n = clique.size();
+		double numEdge=n+1, weight=0;
+		double[] min = {numEdge,weight,0}; //number edges, summed weight of edges, index to be deleted 
+		while (n >= 3) {
+			int edge = 0;
+			for(int i=0; i<n; i++) {
+				int v1 = Integer.parseInt(clique.get(i));
+				numEdge=0;
+				for(int j=0; j<n; j++) {
+					int v2 = Integer.parseInt(clique.get(j));
+					edge += G.adjacency_matrix[v1][v2];		//increments when there is an edge between vertex v1 and v2
+					numEdge += G.adjacency_matrix[v1][v2];
+					weight += G.edgevalues[v1][v2];
+				}
+				if(min[0] > numEdge) {
+					min[0] = numEdge;
+					min[1] = weight;
+					min[2] = i;
+				}
+			}
+			if(edge != n*(n-1)){
+				clique.remove(min[2]);
+				n--;
+			} else {
+				break;
+			}
+		}
+		if(clique.size() < 3)
+			return ("");
+		else 
+			return clique.toString();
+	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		minimcl m = new minimcl();
@@ -120,10 +158,21 @@ public class predictMotif {
 		SM = new SparseMatrix(simGraph.edgevalues);
 		SM = m.mcl(SM, 2);
 		String[] clusters = m.getClusters(SM);
+		Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
 		for(int i=0; i<clusters.length; i++) {
-			if( clusters[i] != "")
+			if( clusters[i] != ""){
 				System.out.println(clusters[i]);
+				List<String> c = Arrays.asList(clusters[i].split(" "));
+				String[] cliques = new String[c.size()];
+				hash.put(clusters[i], cliques);
+				for(int j=0; j<c.size(); j++) {
+					hash.get(clusters[i])[j] = inputmotifs.checkclique(c, simGraph);
+				}
+				
+				
+			}
 		}
+		System.out.println("done");
 	}
 
 }

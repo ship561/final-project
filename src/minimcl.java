@@ -45,13 +45,12 @@ public class minimcl {
 	String[] getClusters(SparseMatrix mx) {
 		mx.prune(.01);
 		mx.normaliseRows();
-		double[][] matrix = mx.getDense();
-		int size = matrix.length;
+		int size = mx.getSize()[0];
 		String[] str = new String[size];
 		for(int col=0; col<size; col++) {
 			str[col] = "";
 			for(int row=0; row<size; row++) {
-				if(matrix[row][col] == 1) {
+				if(mx.get(row,col) == 1) {
 					str[col] += row + " ";
 				}
 			}
