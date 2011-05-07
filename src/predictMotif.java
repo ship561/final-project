@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -100,8 +101,8 @@ public class predictMotif {
 		}
 		return G;
 	}
-	String checkclique(List<String> clique, Graph G) {
-		
+	String checkclique(List<String> c, Graph G) {
+		List<String> clique = c;
 		int n = clique.size();
 		double numEdge=n+1, weight=0;
 		double[] min = {numEdge,weight,0}; //number edges, summed weight of edges, index to be deleted 
@@ -123,7 +124,7 @@ public class predictMotif {
 				}
 			}
 			if(edge != n*(n-1)){
-				clique.remove(min[2]);
+				clique.remove((int) min[2]);
 				n--;
 			} else {
 				break;
@@ -162,10 +163,11 @@ public class predictMotif {
 		for(int i=0; i<clusters.length; i++) {
 			if( clusters[i] != ""){
 				System.out.println(clusters[i]);
-				List<String> c = Arrays.asList(clusters[i].split(" "));
+				List<String> c = new LinkedList<String>(Arrays.asList(clusters[i].split(" ")));
 				String[] cliques = new String[c.size()];
 				hash.put(clusters[i], cliques);
-				for(int j=0; j<c.size(); j++) {
+				for(int j=0; j<cliques.length; j++) {
+					 c = new LinkedList<String>(Arrays.asList(clusters[i].split(" ")));
 					hash.get(clusters[i])[j] = inputmotifs.checkclique(c, simGraph);
 				}
 				
