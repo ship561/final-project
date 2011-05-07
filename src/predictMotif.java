@@ -89,11 +89,12 @@ public class predictMotif {
 	
 	Graph simgraph(weighed_matrix[] motifs) {
 		int numMotif = motifs.length;
+		double beta = .25; 				//minimum value for making an edge on the graph combining 2 nodes
 		Graph G = new Graph(numMotif);
 		for(int i=0; i<numMotif; i++) {
 			for (int j=0; j< numMotif; j++) {
 				double similarity = sim(motifs[i], motifs[j]);
-				if (similarity > .25) {					//Similarity needs to be greater than a cutoff beta
+				if (similarity > beta) {					//Similarity needs to be greater than a cutoff beta
 					G.adjacency_matrix[i][j] = 1;
 					G.edgevalues[i][j] = similarity;
 				}
@@ -135,7 +136,65 @@ public class predictMotif {
 		else 
 			return clique.toString();
 	}
+	void removeRedundant(Hashtable h) {
+		for(Enumeration<LinkedList> e=h.elements(); e.hasMoreElements();) {
+			LinkedList l = e.nextElement();
+			for(int i=0; i< l.size()-1; i++) {
+				int j=1;
+				while(j < l.size()) {
+					if(l.get(i).equals(l.get(j)))
+						l.remove(j);
+					else
+						j++;
+				}
+			}
+		}
+	}
 	
+	String mergecliques(String c1, String c2) {
+		c1 = c1 + c2;							//combines list
+		List<String> c = new LinkedList<String>(Arrays.asList(c1.split(" ")));
+		for(int i=0; i< c.size()-1; i++) {
+			int j=1;
+			while(j<c.size()) {
+				if(c.get(i).equals(c.get(j)))
+					c.remove(j);				//removes duplicate nodes 
+			}
+		}
+		Object[] temp = c.toArray();
+		Arrays.sort(temp);						//sorts the nodes in order
+		return (temp.toString());
+	}
+	
+	boolean quasiclique(String clique1, String clique2) {
+		double rab, RAB;
+		int intersect=0, min, max;
+		List<String> c1 = new LinkedList<String>(Arrays.asList(clique1.split(" ")));
+		List<String> c2 = new LinkedList<String>(Arrays.asList(clique2.split(" ")));
+		
+		if(c1.size() >= c2.size()) {
+			max = c1.size();
+			min = c2.size();
+		} else {
+			max = c2.size();
+			min = c1.size();
+		}
+		for(int i=0; i<c1.size(); i++) {
+			for(int j=0; j<c2.size(); j++) {
+				if(c1.get(i).equals(c2.get(j))) {
+					intersect++;
+					continue;
+				}
+			}
+		}
+		rab = intersect/min;
+		RAB = intersect/max;
+		if(rab >.9 && RAB > .7) 
+			return true;
+		else 
+			return false;
+		
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		minimcl m = new minimcl();
@@ -151,27 +210,50 @@ public class predictMotif {
 			matrixController[i]= new weighed_matrix(listMotifs.get(i));					//motifs are put into a controller array 
 		simGraph = new Graph(listMotifs.size());										//creates a graph of the correct size
 		simGraph = inputmotifs.simgraph(matrixController);								//adds edges
-/*		m.addloops(simGraph.adjacency_matrix);
+		
+		m.addloops(simGraph.adjacency_matrix);											//start setting up for mcl by adding loops to graph nodes
 		simGraph.adjacency_matrix = m.make_stochastic(simGraph.adjacency_matrix);
-		SM = new SparseMatrix(simGraph.adjacency_matrix);*/
-		m.addloops(simGraph.edgevalues);
+		SM = new SparseMatrix(simGraph.adjacency_matrix);
+/*		m.addloops(simGraph.edgevalues);
 		simGraph.edgevalues = m.make_stochastic(simGraph.edgevalues);
-		SM = new SparseMatrix(simGraph.edgevalues);
+		SM = new SparseMatrix(simGraph.edgevalues);*/
+		
 		SM = m.mcl(SM, 2);
 		String[] clusters = m.getClusters(SM);
-		Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
-		for(int i=0; i<clusters.length; i++) {
+		simGraph.addedge(0,2);
+		//Hashtable<String, String[]> cliquehash = new Hashtable<String, String[]>();
+		Hashtable<String, LinkedList<String>> cliquehash = new Hashtable<String, LinkedList<String>>();
+		for(int i=0; i<clusters.length; i++) {		//create a hashtable of the subgraph and cliques which are stored as strings of the nodes
 			if( clusters[i] != ""){
 				System.out.println(clusters[i]);
 				List<String> c = new LinkedList<String>(Arrays.asList(clusters[i].split(" ")));
-				String[] cliques = new String[c.size()];
-				hash.put(clusters[i], cliques);
-				for(int j=0; j<cliques.length; j++) {
+				int n = c.size();
+				LinkedList<String> cliques = new LinkedList<String>();
+				cliquehash.put(clusters[i], cliques);
+				for(int j=0; j<n; j++) {
 					 c = new LinkedList<String>(Arrays.asList(clusters[i].split(" ")));
-					hash.get(clusters[i])[j] = inputmotifs.checkclique(c, simGraph);
+					//cliquehash.get(clusters[i])[j] = inputmotifs.checkclique(c, simGraph);
+					 cliquehash.get(clusters[i]).add(j, inputmotifs.checkclique(c, simGraph));	//cliques are added according to their subgraph. key = subgraph, value = cliques in subgraph
 				}
 				
 				
+			}
+		}
+		inputmotifs.removeRedundant(cliquehash);
+		for(Enumeration<LinkedList<String>> e=cliquehash.elements(); e.hasMoreElements();) {
+			LinkedList<String> l = e.nextElement();
+			for(int i=0; i<l.size()-1; i++){
+				int j=1;
+				while(j<l.size()) {
+					String clique1 = l.get(i);
+					String clique2 = l.remove(j);
+					if(inputmotifs.quasiclique(clique1, clique2))				//merges cliques after seeing if there is enough overlap
+						l.set(i, inputmotifs.mergecliques(clique1, clique2));	//cliques are merged to the first clique in the list order
+					else {
+						l.add(j, clique2);										//if cliques are not merged, then cliques are left in original positions
+						j++;
+					}
+				}
 			}
 		}
 		System.out.println("done");

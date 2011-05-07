@@ -21,11 +21,11 @@ public class minimcl {
 		return adjacency_matrix;
 	}
 	
-	double[][] make_stochastic(double[][] adjacency_matrix) {
-		SparseMatrix SM = new SparseMatrix(adjacency_matrix);
+	double[][] make_stochastic(double[][] matrix) {
+		SparseMatrix SM = new SparseMatrix(matrix);
 		SM.normaliseRows();
-		adjacency_matrix = SM.getDense();
-		return adjacency_matrix;
+		matrix = SM.getDense();
+		return matrix;
 	}
 	
 	SparseMatrix mcl(SparseMatrix mx, double I) {
@@ -50,7 +50,7 @@ public class minimcl {
 		for(int col=0; col<size; col++) {
 			str[col] = "";
 			for(int row=0; row<size; row++) {
-				if(mx.get(row,col) == 1) {
+				if(mx.get(row,col) != 0) {
 					str[col] += row + " ";
 				}
 			}
