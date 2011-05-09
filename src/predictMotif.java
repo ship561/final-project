@@ -11,9 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import net.sf.javaml.clustering.mcl.MarkovClustering;
 import net.sf.javaml.clustering.mcl.SparseMatrix;
-import net.sf.javaml.core.*;
 
 
 
@@ -57,17 +55,19 @@ public class predictMotif {
 		double temp=0;
 		double maxA=0;
 		double maxPrf=0;
-		for(int j=0; j<P1.L; j++) {
+		for(int si=0; si<F2.L; si++) {
 			sumAln=0;
-			for(int si=0; si<F2.L; si++) {
+			int i=0;
+			while(si+i < F2.L) {
 				for (Enumeration<String> e = P1.Prf.keys() ; e.hasMoreElements() ;) {
 					String ele = e.nextElement();
-					sumAln += F2.basefreq.get(ele)[si]*P1.Prf.get(ele)[j]; //sum(f2(b,s(i))*Prf1(b,i))
+					sumAln += F2.basefreq.get(ele)[si+i]*P1.Prf.get(ele)[i]*P1.I(i); //I(i,P1)*sum(f2(b,s(i))*Prf1(b,i))
 				}
+				i++;
 			}
-			temp = P1.I(j)*sumAln;
-			if (temp > maxA)
-				maxA = temp;
+			//temp = P1.I(si)*sumAln;
+			if (sumAln > maxA)
+				maxA = sumAln;
 		}
 		for(int i=0; i<P1.L; i++) {
 			for (Enumeration<String> e = P1.Prf.keys() ; e.hasMoreElements() ;) {
@@ -102,23 +102,26 @@ public class predictMotif {
 		}
 		return G;
 	}
-	String checkclique(List<String> c, Graph G) {
+	String checkclique(String node, List<String> c, Graph G) {
 		List<String> clique = c;
 		int n = clique.size();
 		double numEdge=n+1, weight=0;
-		double[] min = {numEdge,weight,0}; //number edges, summed weight of edges, index to be deleted 
 		while (n >= 3) {
+			double[] min = {n+1,0,0}; //number edges, summed weight of edges, index to be deleted 
 			int edge = 0;
 			for(int i=0; i<n; i++) {
-				int v1 = Integer.parseInt(clique.get(i));
+				int v1 = Integer.parseInt(clique.get(i));		//first vertex
 				numEdge=0;
+				weight=0;
 				for(int j=0; j<n; j++) {
 					int v2 = Integer.parseInt(clique.get(j));
-					edge += G.adjacency_matrix[v1][v2];		//increments when there is an edge between vertex v1 and v2
-					numEdge += G.adjacency_matrix[v1][v2];
-					weight += G.edgevalues[v1][v2];
+					if(v1!=v2) {
+						edge += G.adjacency_matrix[v1][v2];		//increments when there is an edge between vertex v1 and v2
+						numEdge += G.adjacency_matrix[v1][v2];
+						weight += G.edgevalues[v1][v2];
+					}
 				}
-				if(min[0] > numEdge) {
+				if(min[0] > numEdge && i != clique.indexOf(node)) {
 					min[0] = numEdge;
 					min[1] = weight;
 					min[2] = i;
@@ -131,16 +134,19 @@ public class predictMotif {
 				break;
 			}
 		}
-		if(clique.size() < 3)
-			return ("");
+		if(clique.size() < 3 || ! clique.contains(node))
+			return ("null");
 		else 
 			return clique.toString();
 	}
 	void removeRedundant(Hashtable h) {
 		for(Enumeration<LinkedList> e=h.elements(); e.hasMoreElements();) {
 			LinkedList l = e.nextElement();
+			while(l.contains("null")) {
+				l.remove("null");
+			}
 			for(int i=0; i< l.size()-1; i++) {
-				int j=1;
+				int j=i+1;
 				while(j < l.size()) {
 					if(l.get(i).equals(l.get(j)))
 						l.remove(j);
@@ -152,25 +158,33 @@ public class predictMotif {
 	}
 	
 	String mergecliques(String c1, String c2) {
-		c1 = c1 + c2;							//combines list
-		List<String> c = new LinkedList<String>(Arrays.asList(c1.split(" ")));
+		c1 = c1.substring(1,c1.length()-1);
+		c2 = c2.substring(1,c2.length()-1);
+		c1 = c1 + ", " + c2;							//combines list
+		//List<String> c = new LinkedList<String>(Arrays.asList(c1.split(", ")));
+		List<String> c = String2List(c1);
 		for(int i=0; i< c.size()-1; i++) {
-			int j=1;
+			int j=i+1;
 			while(j<c.size()) {
 				if(c.get(i).equals(c.get(j)))
 					c.remove(j);				//removes duplicate nodes 
+				else 
+					j++;
 			}
 		}
 		Object[] temp = c.toArray();
 		Arrays.sort(temp);						//sorts the nodes in order
-		return (temp.toString());
+		String str = Arrays.toString(temp);
+		return str;
 	}
 	
 	boolean quasiclique(String clique1, String clique2) {
 		double rab, RAB;
 		int intersect=0, min, max;
-		List<String> c1 = new LinkedList<String>(Arrays.asList(clique1.split(" ")));
-		List<String> c2 = new LinkedList<String>(Arrays.asList(clique2.split(" ")));
+		//List<String> c1 = new LinkedList<String>(Arrays.asList(clique1.substring(1,clique1.length()-1).split(", ")));
+		//List<String> c2 = new LinkedList<String>(Arrays.asList(clique2.substring(1,clique2.length()-1).split(", ")));
+		List<String> c1 = String2List(clique1);
+		List<String> c2 = String2List(clique2);
 		
 		if(c1.size() >= c2.size()) {
 			max = c1.size();
@@ -187,22 +201,46 @@ public class predictMotif {
 				}
 			}
 		}
-		rab = intersect/min;
-		RAB = intersect/max;
+		rab = (double) intersect/min;
+		RAB = (double) intersect/max;
 		if(rab >.9 && RAB > .7) 
 			return true;
 		else 
 			return false;
 		
 	}
+	
+	double clusterScore(weighed_matrix best, LinkedList<weighed_matrix> cluster) {
+		int n = best.motif.length;	//number of sequences in the best motif
+		int N = 0;					//number of sequences in cluster
+		int L = best.L;				//L-length motif in best motif
+		double x=0;
+		double clusterscore = 0;
+		for(int i=0; i<cluster.size(); i++) {
+			N += cluster.get(i).motif.length;
+		}
+		
+		for(int i=0; i<L; i++) 
+			x += best.I(i)/L;
+		
+		clusterscore = (n-Math.log(N))*Math.exp(x);
+		
+		return clusterscore;
+		
+	}
+	
+	List<String> String2List(String s) {
+		return (new LinkedList<String>(Arrays.asList(s.substring(1,s.length()-1).split(", "))));
+	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		minimcl m = new minimcl();
 		SparseMatrix SM;
-		predictMotif inputmotifs = new predictMotif();
-		File file = new File("motif.txt");
-		Graph simGraph;
-		ArrayList<String[]> listMotifs = new ArrayList<String[]>();
+		predictMotif inputmotifs = new predictMotif();				//object
+		File file = new File("motif.txt");							//input file
+		Graph simGraph;												//graph of the similarity for pairwise comparisons of motifs
+		ArrayList<String[]> listMotifs = new ArrayList<String[]>();	//array list of arrays where each node in the list is an array of the sequences found for that motif
 		
 		listMotifs = inputmotifs.fileIN(file, listMotifs);
 		weighed_matrix[] matrixController = new weighed_matrix[listMotifs.size()];
@@ -211,16 +249,25 @@ public class predictMotif {
 		simGraph = new Graph(listMotifs.size());										//creates a graph of the correct size
 		simGraph = inputmotifs.simgraph(matrixController);								//adds edges
 		
-		m.addloops(simGraph.adjacency_matrix);											//start setting up for mcl by adding loops to graph nodes
+		/*/artifical edges added for testing purpose
+		simGraph.addedge(1,3);
+		simGraph.addedge(3,1);
+		simGraph.addedge(2,4);
+		simGraph.addedge(4,2);
+		*****************/
+		
+/*		m.addloops(simGraph.adjacency_matrix);											//start setting up for mcl by adding loops to graph nodes
 		simGraph.adjacency_matrix = m.make_stochastic(simGraph.adjacency_matrix);
-		SM = new SparseMatrix(simGraph.adjacency_matrix);
-/*		m.addloops(simGraph.edgevalues);
+		SM = new SparseMatrix(simGraph.adjacency_matrix);*/
+		m.addloops(simGraph.edgevalues);
 		simGraph.edgevalues = m.make_stochastic(simGraph.edgevalues);
-		SM = new SparseMatrix(simGraph.edgevalues);*/
+		SM = new SparseMatrix(simGraph.edgevalues);
 		
 		SM = m.mcl(SM, 2);
 		String[] clusters = m.getClusters(SM);
-		simGraph.addedge(0,2);
+		
+
+		
 		//Hashtable<String, String[]> cliquehash = new Hashtable<String, String[]>();
 		Hashtable<String, LinkedList<String>> cliquehash = new Hashtable<String, LinkedList<String>>();
 		for(int i=0; i<clusters.length; i++) {		//create a hashtable of the subgraph and cliques which are stored as strings of the nodes
@@ -233,7 +280,7 @@ public class predictMotif {
 				for(int j=0; j<n; j++) {
 					 c = new LinkedList<String>(Arrays.asList(clusters[i].split(" ")));
 					//cliquehash.get(clusters[i])[j] = inputmotifs.checkclique(c, simGraph);
-					 cliquehash.get(clusters[i]).add(j, inputmotifs.checkclique(c, simGraph));	//cliques are added according to their subgraph. key = subgraph, value = cliques in subgraph
+					 cliquehash.get(clusters[i]).add(j, inputmotifs.checkclique(c.get(j), c, simGraph));	//cliques are added according to their subgraph. key = subgraph, value = cliques in subgraph
 				}
 				
 				
@@ -243,7 +290,7 @@ public class predictMotif {
 		for(Enumeration<LinkedList<String>> e=cliquehash.elements(); e.hasMoreElements();) {
 			LinkedList<String> l = e.nextElement();
 			for(int i=0; i<l.size()-1; i++){
-				int j=1;
+				int j=i+1;
 				while(j<l.size()) {
 					String clique1 = l.get(i);
 					String clique2 = l.remove(j);
@@ -256,6 +303,19 @@ public class predictMotif {
 				}
 			}
 		}
+		for(Enumeration<LinkedList<String>> e=cliquehash.elements(); e.hasMoreElements();) {
+			LinkedList<String> cliques = e.nextElement();
+			while(cliques.size() > 0){
+				List<String> l = inputmotifs.String2List(cliques.pop());
+				LinkedList<weighed_matrix> cluster = new LinkedList<weighed_matrix>();
+				int best = Integer.parseInt(l.remove(0));
+				while(l.size() > 0) {
+					cluster.add(matrixController[Integer.parseInt(l.remove(0))]);
+				}
+				System.out.println(inputmotifs.clusterScore(matrixController[best], cluster));
+			}
+		}
+		
 		System.out.println("done");
 	}
 

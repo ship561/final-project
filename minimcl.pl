@@ -97,10 +97,10 @@ sub mcl {
    my $ite = 1;
    while ($chaos > 0.001) {
       my $sq = matrix_square($mx);
-      my $progress = sprintf "chaos %.5f ite %d", $chaos, $ite;
+      my $progress = sprintf "after expand %.5f ite %d", $chaos, $ite;
 matrix_dump($sq, 3, "X $progress") if $::verbose;
       $chaos = matrix_inflate($sq, $I);
-matrix_dump($sq, 3, sprintf "I $progress") if $::verbose;
+matrix_dump($sq, 3, sprintf "I after inflate $progress") if $::verbose;
 print STDERR "$progress\n" if !$::verbose;
       $mx = $sq;
       $ite++;
