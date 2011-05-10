@@ -206,6 +206,7 @@ sub matrix_inflate {          # prunes small elements as well.
          $mx->{$n}{$nb} **= $I;
          $sum += $mx->{$n}{$nb};
       }
+      print("sum = $sum\n");
       if ($sum) {
          for my $nb (keys %{$mx->{$n}}) {
             $mx->{$n}{$nb} /= $sum;
