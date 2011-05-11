@@ -58,7 +58,7 @@ public class predictMotif {
 		for(int si=0; si<F2.L; si++) {
 			sumAln=0;
 			int i=0;
-			while(si+i < F2.L) {
+			while(si+i < F2.L && i < P1.L) {
 				for (Enumeration<String> e = P1.Prf.keys() ; e.hasMoreElements() ;) {
 					String ele = e.nextElement();
 					sumAln += F2.basefreq.get(ele)[si+i]*P1.Prf.get(ele)[i]*P1.I(i); //I(i,P1)*sum(f2(b,s(i))*Prf1(b,i))
@@ -89,7 +89,7 @@ public class predictMotif {
 	
 	Graph simgraph(weighed_matrix[] motifs) {
 		int numMotif = motifs.length;
-		double beta = .25; 				//minimum value for making an edge on the graph combining 2 nodes
+		double beta = .05; 				//minimum value for making an edge on the graph combining 2 nodes
 		Graph G = new Graph(numMotif);
 		for(int i=0; i<numMotif; i++) {
 			for (int j=0; j< numMotif; j++) {
@@ -303,16 +303,19 @@ public class predictMotif {
 				}
 			}
 		}
+		
+		//finds cluster score for a clique. future versions will find it for the cluster as a whole
 		for(Enumeration<LinkedList<String>> e=cliquehash.elements(); e.hasMoreElements();) {
 			LinkedList<String> cliques = e.nextElement();
 			while(cliques.size() > 0){
 				List<String> l = inputmotifs.String2List(cliques.pop());
+				System.out.print("for clique " + l + " clusterscore: ");
 				LinkedList<weighed_matrix> cluster = new LinkedList<weighed_matrix>();
 				int best = Integer.parseInt(l.remove(0));
 				while(l.size() > 0) {
 					cluster.add(matrixController[Integer.parseInt(l.remove(0))]);
 				}
-				System.out.println(inputmotifs.clusterScore(matrixController[best], cluster));
+				System.out.println(inputmotifs.clusterScore(matrixController[best], cluster));	//generate a clusterscore for each clique found 
 			}
 		}
 		
