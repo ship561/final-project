@@ -17,8 +17,8 @@ public class weighed_matrix {
 	
 	weighed_matrix(String[] motifs) {
 		motif		= motifs;
-		basefreq 	= new Hashtable<String, double[]>();
-		Prf 		= new Hashtable<String, double[]>();		
+		basefreq 	= new Hashtable<String, double[]>();		//base frequency
+		Prf 		= new Hashtable<String, double[]>();		//profile matrix ln(prob(b,i)/q(b))
 		L			= motifs[0].length();
 		initialize(basefreq);
 		initialize(Prf);
